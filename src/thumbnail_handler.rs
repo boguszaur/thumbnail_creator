@@ -9,19 +9,20 @@ use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 use std::iter::FromIterator;
 
-#[derive(Deserialize)]
+#[derive(Debug, Deserialize)]
 pub struct ThumbnailRequest {
     pub urls: Vec<String>,
 }
 
-#[derive(Serialize)]
+#[derive(Debug, Serialize)]
 pub struct ThumbnailResponse {
     pub success: HashMap<String, String>,
     pub failed: HashMap<String, String>,
 }
 
+#[derive(Debug, Clone)]
 pub struct HandlerOptions {
-    pub max_url_in_single_req: usize,
+    pub max_url_in_single_req: u64,
 }
 
 pub fn handle<
@@ -151,7 +152,7 @@ fn validate_request(
         return Err(HandlerError::EmptyURLArray);
     }
     let unique_urls: HashSet<String> = HashSet::from_iter(urls.iter().map(|url| url.to_owned()));
-    if unique_urls.len() > handler_options.max_url_in_single_req {
+    if unique_urls.len() as u64 > handler_options.max_url_in_single_req {
         return Err(HandlerError::TooManyURL(
             handler_options.max_url_in_single_req,
         ));
@@ -166,7 +167,7 @@ pub enum HandlerError {
     #[fail(display = "Request contains empty url array")]
     EmptyURLArray,
     #[fail(display = "Request contains more than {} unique urls", _0)]
-    TooManyURL(usize),
+    TooManyURL(u64),
     #[fail(display = "Could not download image: {}", _0)]
     DownloadError(download::DownloadError),
     #[fail(display = "Operation cancelled: {}", _0)]
@@ -180,7 +181,6 @@ pub enum HandlerError {
 impl error::ResponseError for HandlerError {
     fn error_response(&self) -> HttpResponse {
         match self {
-            //ToDo: define correct errors
             HandlerError::EmptyURLArray | HandlerError::TooManyURL(_) => {
                 HttpResponse::new(http::StatusCode::BAD_REQUEST)
             }

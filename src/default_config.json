@@ -1,0 +1,15 @@
+{
+    "listen_ip": "0.0.0.0",
+    "listen_port": "8080",
+    "shutdown_timeout": 30,
+    "max_content_length": 3000000,
+    "check_mime_type": true,
+    "max_urls_in_single_req": 70,
+    "http_client_timeout": 5,
+    "thumbnail_width": 100,
+    "thumbnail_height": 100,
+    "thumbnail_exact_size": true,
+    "storage_base_dir": "/images/out",
+    "thumbnail_extension": "jpg",
+    "log_level": "info,actix_web:debug"
+}

@@ -15,6 +15,7 @@ pub trait StorageService: Send + Sync {
     fn get_base_path(&self) -> PathBuf;
 }
 
+#[derive(Debug, Clone)]
 pub struct ThumbnailStorage {
     base_path: PathBuf,
     sub_path: PathBuf,
@@ -44,7 +45,6 @@ impl StorageService for ThumbnailStorage {
     fn get_base_path(&self) -> PathBuf {
         self.base_path.clone()
     }
-
     fn store_image(
         &self,
         handle: &ImageHandle,
@@ -77,7 +77,7 @@ impl ThumbnailStorage {
     }
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct ImageHandle {
     path: String,
     exists: bool,

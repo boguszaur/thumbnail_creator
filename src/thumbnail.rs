@@ -9,12 +9,12 @@ pub trait ThumbnailService: Send + Sync {
     ) -> Result<image::DynamicImage, ThumbnailError>;
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct ThumbnailCreator {
     opt: ThumbnailOptions,
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct ThumbnailOptions {
     pub width: u32,
     pub height: u32,

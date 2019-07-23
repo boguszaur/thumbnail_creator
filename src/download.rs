@@ -1,76 +1,38 @@
+use bytes::Bytes;
 use failure::Fail;
 use futures::future::*;
 use futures::stream::*;
 use log::*;
 use reqwest::r#async::Client;
+use url::Url;
 
 pub trait DownloadService {
-    fn download_image(
-        &self,
-        url: String,
-    ) -> Box<dyn Future<Item = reqwest::r#async::Chunk, Error = DownloadError>>;
+    fn download_image(&self, url: String) -> Box<dyn Future<Item = Bytes, Error = DownloadError>>;
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct Downloader {
     opt: DownloadOptions,
     client: Client,
 }
+
 const MIME_PREFIX: &'static str = "image/";
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct DownloadOptions {
     pub max_content_length: Option<u64>,
     pub check_mime_type: bool,
 }
 
-/*
-pub fn download_image2(
-    url: String,
-    client: &Client,
-) -> impl Future<Item = impl AsRef<[u8]>, Error = DownloadError> {
-    client
-        .get(&url)
-        .send()
-        .map_err({
-            let url_owned = url.clone();
-            |err| {
-                debug!("download image error: {}", err);
-                DownloadError::FailedGetImage {
-                    url: url_owned,
-                    desc: format!("{}", err),
-                }
-            }
-        })
-        .and_then({
-            |res| {
-                let status = res.status();
-                if status != actix_web::http::StatusCode::OK {
-                    return err(DownloadError::StatusCodeNotOK {
-                        url: url,
-                        code: status.as_str().to_owned(),
-                    });
-                }
-                ok(res.into_body().concat2().map_err(|err| {
-                    debug!("read image payload error: {}", err);
-                    DownloadError::FailedParsePayload {
-                        url: url,
-                        desc: format!("{}", err),
-                    }
-                }))
-            }
-        })
-        .and_then(|b| b)
-}*/
-
 impl DownloadService for Downloader {
-    fn download_image(
-        &self,
-        url: String,
-    ) -> Box<dyn Future<Item = reqwest::r#async::Chunk, Error = DownloadError>> {
+    fn download_image(&self, url: String) -> Box<dyn Future<Item = Bytes, Error = DownloadError>> {
+        let parsed_url = validate_url(&url);
+        if parsed_url.is_err() {
+            return Box::new(result(parsed_url.map(|_| Bytes::new())));
+        };
         Box::new(
             self.client
-                .get(&url)
+                .get(parsed_url.unwrap())
                 .send()
                 .map_err({
                     let url_owned = url.clone();
@@ -96,9 +58,27 @@ impl DownloadService for Downloader {
                         })
                     }
                 })
-                .and_then(|b| b),
+                .and_then(|b| b)
+                .map(|b| Bytes::from(b.as_ref())),
         )
     }
+}
+
+fn validate_url(url: &str) -> Result<Url, DownloadError> {
+    Url::parse(&url)
+        .map_err(|err| DownloadError::UrsParseError {
+            url: url.to_owned(),
+            desc: format!("{}", err),
+        })
+        .and_then(|u| {
+            if u.has_host() && (u.scheme() == "https" || u.scheme() == "http") {
+                return Ok(u);
+            }
+            return Err(DownloadError::UrsParseError {
+                url: url.to_owned(),
+                desc: "incorrect scheme or host".to_owned(),
+            });
+        })
 }
 
 fn validate_response(
@@ -160,6 +140,8 @@ impl Downloader {
 
 #[derive(Fail, Debug)]
 pub enum DownloadError {
+    #[fail(display = "Failed to parse url '{}' error: {}", url, desc)]
+    UrsParseError { url: String, desc: String },
     #[fail(display = "Failed to get image (image url: '{}') error: {}", url, desc)]
     FailedGetImage { url: String, desc: String },
     #[fail(
@@ -191,3 +173,5 @@ pub enum DownloadError {
         content_type_prefix: String,
     },
 }
+
+
