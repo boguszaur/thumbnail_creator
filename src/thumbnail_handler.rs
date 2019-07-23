@@ -6,12 +6,18 @@ use failure::Fail;
 use futures::future::*;
 use log::*;
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::iter::FromIterator;
 
 #[derive(Deserialize)]
-pub struct ThumbnailReq {
+pub struct ThumbnailRequest {
     pub urls: Vec<String>,
+}
+
+#[derive(Serialize)]
+pub struct ThumbnailResponse {
+    pub success: HashMap<String, String>,
+    pub failed: HashMap<String, String>,
 }
 
 pub struct HandlerOptions {
@@ -27,14 +33,13 @@ pub fn handle<
     storage: web::Data<S>,
     downloader: web::Data<D>,
     options: web::Data<HandlerOptions>,
-    req: web::Json<ThumbnailReq>,
+    req: web::Json<ThumbnailRequest>,
     http_req: HttpRequest,
-) -> Box<dyn Future<Item = actix_web::web::Json<HashMap<String, String>>, Error = HandlerError>> {
+) -> Box<dyn Future<Item = actix_web::web::Json<ThumbnailResponse>, Error = HandlerError>> {
     Box::new(
-        result(validate_request(&req.urls, &options)).and_then(move |mut hm| {
+        result(validate_request(&req.urls, &options)).and_then(move |urls| {
             let mut all_futures = vec![];
-            let keys = hm.keys().map(|k| k.clone()).collect::<Vec<String>>();
-            for k in keys {
+            for k in urls {
                 all_futures.push(
                     handle_one_image(
                         thumbnail.clone(),
@@ -42,22 +47,38 @@ pub fn handle<
                         downloader.clone(),
                         k.clone(),
                     )
-                    .map(|img_path| (k, img_path)),
+                    .map(move |img_path| (k.clone(), img_path)),
                 );
             }
-            join_all(all_futures).map(move |vec| {
-                for (key, img_path) in vec {
-                    let img_url_result = match http_req.url_for("thumbnail_url", &[img_path]) {
-                        Ok(img_url) => img_url.to_string(),
-                        Err(err) => {
-                            error!("error while generating url: {}", err);
-                            format!("Internal server error")
-                        }
+            join_all(all_futures)
+                .map_err(|_| HandlerError::EmptyError)
+                .map(move |vec| {
+                    let mut response = ThumbnailResponse {
+                        success: HashMap::new(),
+                        failed: HashMap::new(),
                     };
-                    hm.insert(key, img_url_result);
-                }
-                web::Json(hm)
-            })
+                    for (key, img_path) in vec {
+                        match img_path {
+                            Ok(path) => {
+                                match http_req.url_for("thumbnail_url", &[path]) {
+                                    Ok(img_url) => {
+                                        response.success.insert(key, img_url.to_string());
+                                    }
+                                    Err(err) => {
+                                        error!("error while generating url: {}", err);
+                                        response
+                                            .failed
+                                            .insert(key, format!("Internal server error"));
+                                    }
+                                };
+                            }
+                            Err(err) => {
+                                response.failed.insert(key, format!("{}", err));
+                            }
+                        }
+                    }
+                    web::Json(response)
+                })
         }),
     )
 }
@@ -71,7 +92,7 @@ fn handle_one_image<
     storage: web::Data<S>,
     downloader: web::Data<D>,
     url: String,
-) -> impl Future<Item = String, Error = HandlerError> {
+) -> impl Future<Item = Result<String, HandlerError>, Error = ()> {
     lazy(move || {
         downloader
             .download_image(url)
@@ -86,7 +107,7 @@ fn handle_one_image<
                     let ih = img_handle.clone();
                     lazy(move || {
                         if ih.exists() {
-                            return ok(ih.path());
+                            return ok(Ok(ih.path()));
                         }
                         return err(());
                     })
@@ -104,7 +125,7 @@ fn handle_one_image<
                                 web::block(move || {
                                     storage
                                         .store_image(&img_handle, img)
-                                        .map(move |_| img_handle.path())
+                                        .map(move |_| Ok(img_handle.path()))
                                 })
                                 .map_err(|err| match err {
                                     error::BlockingError::Error(storage_err) => {
@@ -119,28 +140,29 @@ fn handle_one_image<
                 })
             })
     })
-    .or_else(|err| ok(format!("{}", err)))
+    .or_else(|err| ok(Err(err)))
 }
 
 fn validate_request(
     urls: &Vec<String>,
     handler_options: &HandlerOptions,
-) -> Result<HashMap<String, String>, HandlerError> {
+) -> Result<HashSet<String>, HandlerError> {
     if urls.len() < 1 {
         return Err(HandlerError::EmptyURLArray);
     }
-    let urls_map: HashMap<String, String> =
-        HashMap::from_iter(urls.iter().map(|url| (url.to_owned(), "".to_owned())));
-    if urls_map.keys().len() > handler_options.max_url_in_single_req {
+    let unique_urls: HashSet<String> = HashSet::from_iter(urls.iter().map(|url| url.to_owned()));
+    if unique_urls.len() > handler_options.max_url_in_single_req {
         return Err(HandlerError::TooManyURL(
             handler_options.max_url_in_single_req,
         ));
     }
-    return Ok(urls_map);
+    return Ok(unique_urls);
 }
 
 #[derive(Fail, Debug)]
 pub enum HandlerError {
+    #[fail(display = "not reachable error")]
+    EmptyError,
     #[fail(display = "Request contains empty url array")]
     EmptyURLArray,
     #[fail(display = "Request contains more than {} unique urls", _0)]
