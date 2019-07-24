@@ -28,7 +28,7 @@ pub struct AppConfig {
 impl AppConfig {
     pub fn new() -> Result<Self, ConfigError> {
         let mut c = Config::new();
-        c.merge(File::with_name("src/default_config").required(true))?;
+        c.merge(File::with_name("src/default_config").required(false))?;
         c.merge(Environment::with_prefix("APP"))?;
         c.try_into()
     }

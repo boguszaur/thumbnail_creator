@@ -1,5 +1,5 @@
 [package]
-name = "image_preview_creator"
+name = "thumbnail_creator"
 version = "0.1.0"
 authors = ["Zaur Bogus <boguszaur@gmail.com>"]
 edition = "2018"
