@@ -1,0 +1,25 @@
+version: "3.7"
+services:
+  thumbnail:
+    build: .
+    container_name: thumbnail
+    ports:
+      - "${HOST_PORT:-8080}:${APP_LISTEN_PORT:-8080}"
+    environment: 
+      APP_LISTEN_IP: ${APP_LISTEN_IP:-0.0.0.0}
+      APP_LISTEN_PORT: ${APP_LISTEN_PORT:-8080}
+      APP_SHUTDOWN_TIMEOUT: ${APP_SHUTDOWN_TIMEOUT:-60}
+      APP_MAX_CONTENT_LENGTH: ${APP_MAX_CONTENT_LENGTH:-50000000}
+      APP_CHECK_MIME_TYPE: ${APP_CHECK_MIME_TYPE:-true}
+      APP_MAX_URLS_IN_SINGLE_REQ: ${APP_MAX_URLS_IN_SINGLE_REQ:-70}
+      APP_HTTP_CLIENT_TIMEOUT: ${APP_HTTP_CLIENT_TIMEOUT:-5}
+      APP_THUMBNAIL_WIDTH:  ${APP_THUMBNAIL_WIDTH:-100}
+      APP_THUMBNAIL_HEIGHT:  ${APP_THUMBNAIL_HEIGHT:-100}
+      APP_THUMBNAIL_EXACT_SIZE:  ${APP_THUMBNAIL_EXACT_SIZE:-true}
+      APP_STORAGE_BASE_DIR:  ${APP_STORAGE_BASE_DIR:-/images/out}
+      APP_THUMBNAIL_EXTENSION:  ${APP_THUMBNAIL_EXTENSION:-jpg}
+      APP_LOG_LEVEL:  ${APP_LOG_LEVEL:-info,actix_web=debug}
+    volumes:
+      - type: bind
+        source: ${HOST_VOLUME_PATH:-./thumbnails}
+        target: ${APP_STORAGE_BASE_DIR:-/images/out}
