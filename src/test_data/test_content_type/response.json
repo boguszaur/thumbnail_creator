@@ -1,0 +1,6 @@
+{
+    "success": {},
+    "failed": {
+        "https://example.com": "Could not download image: Response from url 'https://example.com/' returned content_type 'text/html; charset=UTF-8'. Expecting content type starting with 'image/'"
+    }
+}

@@ -1,0 +1,6 @@
+{
+    "success": {},
+    "failed": {
+        "https://google.com/not_found": "Could not download image: Get image (image url: 'https://google.com/not_found') returned status code != 200: 404"
+    }
+}

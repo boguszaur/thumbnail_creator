@@ -2,7 +2,7 @@
     "listen_ip": "0.0.0.0",
     "listen_port": "8080",
     "shutdown_timeout": 30,
-    "max_content_length": 3000000,
+    "max_content_length": 5000000,
     "check_mime_type": true,
     "max_urls_in_single_req": 70,
     "http_client_timeout": 5,

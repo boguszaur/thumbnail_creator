@@ -1,0 +1,6 @@
+{
+    "success": {},
+    "failed": {
+        "id/23/500/500": "Could not download image: Failed to parse url 'id/23/500/500' error: relative URL without a base"
+    }
+}

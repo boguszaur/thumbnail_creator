@@ -1,0 +1,6 @@
+{
+    "success": {},
+    "failed": {
+        "https://picsum.photos/id/1002/4312/2868": "Could not download image: Response from url 'https://picsum.photos/id/1002/4312/2868' returned content_length 2327574 that exceeds max allowed 1000000"
+    }
+}

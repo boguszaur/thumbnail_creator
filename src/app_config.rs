@@ -1,7 +1,7 @@
 use crate::download::*;
 use crate::storage::*;
 use crate::thumbnail::*;
-use crate::thumbnail_handler;
+use crate::thumbnail_handler::*;
 use actix_web::web;
 use config::{Config, ConfigError, Environment, File};
 use reqwest::r#async::Client;
@@ -35,6 +35,22 @@ impl AppConfig {
 }
 
 pub fn configure_app(cfg: &mut web::ServiceConfig, app_config: &AppConfig) -> std::io::Result<()> {
+    let (thumbnail, storage, downloader, handler_options) = create_services(app_config)?;
+    cfg.data(handler_options)
+        .data(thumbnail)
+        .data(storage)
+        .data(downloader);
+    Ok(())
+}
+
+pub fn create_services(
+    app_config: &AppConfig,
+) -> std::io::Result<(
+    ThumbnailCreator,
+    ThumbnailStorage,
+    Downloader,
+    HandlerOptions,
+)> {
     let thumbnail = ThumbnailCreator::new(ThumbnailOptions {
         width: app_config.thumbnail_width,
         height: app_config.thumbnail_width,
@@ -62,12 +78,9 @@ pub fn configure_app(cfg: &mut web::ServiceConfig, app_config: &AppConfig) -> st
         http_client,
     );
 
-    let handler_options = thumbnail_handler::HandlerOptions {
+    let handler_options = HandlerOptions {
         max_url_in_single_req: app_config.max_urls_in_single_req,
     };
-    cfg.data(handler_options)
-        .data(thumbnail)
-        .data(storage)
-        .data(downloader);
-    Ok(())
+
+    Ok((thumbnail, storage, downloader, handler_options))
 }

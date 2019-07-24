@@ -9,12 +9,12 @@ use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 use std::iter::FromIterator;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct ThumbnailRequest {
     pub urls: Vec<String>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct ThumbnailResponse {
     pub success: HashMap<String, String>,
     pub failed: HashMap<String, String>,

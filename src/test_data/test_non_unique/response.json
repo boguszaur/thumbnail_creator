@@ -1,0 +1,8 @@
+{
+    "success": {
+        "https://picsum.photos/id/1/500/500": "http://localhost:8080/thumbnail/100x100/3e01488f21a3acf704b02f57bc415c4f.jpg",
+        "https://picsum.photos/id/3/500/500": "http://localhost:8080/thumbnail/100x100/5180a8c398b6d41b9543d90282ef089b.jpg",
+        "https://picsum.photos/id/2/500/500": "http://localhost:8080/thumbnail/100x100/0b90bf6685cca9a67380fa11a1ba143c.jpg"
+    },
+    "failed": {}
+}
