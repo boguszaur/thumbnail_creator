@@ -45,23 +45,12 @@ impl StorageService for ThumbnailStorage {
     fn get_base_path(&self) -> PathBuf {
         self.base_path.clone()
     }
-
-    #[cfg(not(test))]
     fn store_image(
         &self,
         handle: &ImageHandle,
         img: image::DynamicImage,
     ) -> Result<(), StorageError> {
         handle.store_image(&self.base_path, img)
-    }
-
-    #[cfg(test)]
-    fn store_image(
-        &self,
-        handle: &ImageHandle,
-        img: image::DynamicImage,
-    ) -> Result<(), StorageError> {
-        Ok(())
     }
 }
 

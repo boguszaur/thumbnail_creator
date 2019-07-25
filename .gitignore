@@ -9,6 +9,8 @@ ToDo
 /target
 **/*.rs.bk
 
+test_data/out
+
 #Keep folder for docker-compose
 thumbnails/*
 !thumbnails/.gitkeep 

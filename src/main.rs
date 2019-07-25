@@ -49,14 +49,15 @@ fn main() -> io::Result<()> {
 mod tests {
     use super::*;
     use actix_web::test;
+    use rand;
     use std::path::Path;
 
     #[test]
     fn test_multiple_images() {
         call_thumbnail_handler(
-            get_from_file("src/test_data/test_multiple_images/request.json"),
+            get_from_file("test_data/in/test_multiple_images/request.json"),
             Ok(get_from_file(
-                "src/test_data/test_multiple_images/response.json",
+                "test_data/in/test_multiple_images/response.json",
             )),
             None,
         );
@@ -65,8 +66,8 @@ mod tests {
     #[test]
     fn test_non_unique() {
         call_thumbnail_handler(
-            get_from_file("src/test_data/test_non_unique/request.json"),
-            Ok(get_from_file("src/test_data/test_non_unique/response.json")),
+            get_from_file("test_data/in/test_non_unique/request.json"),
+            Ok(get_from_file("test_data/in/test_non_unique/response.json")),
             None,
         );
     }
@@ -74,9 +75,9 @@ mod tests {
     #[test]
     fn test_content_length() {
         call_thumbnail_handler(
-            get_from_file("src/test_data/test_content_length/request.json"),
+            get_from_file("test_data/in/test_content_length/request.json"),
             Ok(get_from_file(
-                "src/test_data/test_content_length/response.json",
+                "test_data/in/test_content_length/response.json",
             )),
             None,
         );
@@ -85,9 +86,9 @@ mod tests {
     #[test]
     fn test_content_type() {
         call_thumbnail_handler(
-            get_from_file("src/test_data/test_content_type/request.json"),
+            get_from_file("test_data/in/test_content_type/request.json"),
             Ok(get_from_file(
-                "src/test_data/test_content_type/response.json",
+                "test_data/in/test_content_type/response.json",
             )),
             None,
         );
@@ -96,9 +97,9 @@ mod tests {
     #[test]
     fn test_incorrect_schema() {
         call_thumbnail_handler(
-            get_from_file("src/test_data/test_incorrect_schema/request.json"),
+            get_from_file("test_data/in/test_incorrect_schema/request.json"),
             Ok(get_from_file(
-                "src/test_data/test_incorrect_schema/response.json",
+                "test_data/in/test_incorrect_schema/response.json",
             )),
             None,
         );
@@ -107,10 +108,8 @@ mod tests {
     #[test]
     fn test_invalid_url() {
         call_thumbnail_handler(
-            get_from_file("src/test_data/test_invalid_url/request.json"),
-            Ok(get_from_file(
-                "src/test_data/test_invalid_url/response.json",
-            )),
+            get_from_file("test_data/in/test_invalid_url/request.json"),
+            Ok(get_from_file("test_data/in/test_invalid_url/response.json")),
             None,
         );
     }
@@ -118,7 +117,7 @@ mod tests {
     #[test]
     fn test_no_urls() {
         call_thumbnail_handler(
-            get_from_file("src/test_data/test_no_urls/request.json"),
+            get_from_file("test_data/in/test_no_urls/request.json"),
             Err("Request contains empty url array".to_owned()),
             None,
         );
@@ -127,10 +126,8 @@ mod tests {
     #[test]
     fn test_status_code() {
         call_thumbnail_handler(
-            get_from_file("src/test_data/test_status_code/request.json"),
-            Ok(get_from_file(
-                "src/test_data/test_status_code/response.json",
-            )),
+            get_from_file("test_data/in/test_status_code/request.json"),
+            Ok(get_from_file("test_data/in/test_status_code/response.json")),
             None,
         );
     }
@@ -138,7 +135,7 @@ mod tests {
     #[test]
     fn test_too_many_urls() {
         call_thumbnail_handler(
-            get_from_file("src/test_data/test_too_many_urls/request.json"),
+            get_from_file("test_data/in/test_too_many_urls/request.json"),
             Err("Request contains more than 70 unique urls".to_owned()),
             None,
         );
@@ -200,6 +197,7 @@ mod tests {
     }
 
     fn create_config() -> AppConfig {
+        let out_folder = format!("test_data/out/{:x}", rand::random::<u64>());
         AppConfig {
             listen_ip: "0.0.0.0".to_owned(),
             listen_port: "8080".to_owned(),
@@ -211,9 +209,16 @@ mod tests {
             thumbnail_width: 100,
             thumbnail_height: 100,
             thumbnail_exact_size: true,
-            storage_base_dir: "/images/out".to_owned(),
+            storage_base_dir: out_folder,
             thumbnail_extension: "jpg".to_owned(),
             log_level: "info".to_owned(),
+        }
+    }
+
+    //delete folder after test finishes
+    impl Drop for AppConfig {
+        fn drop(&mut self) {
+            std::fs::remove_dir_all(&self.storage_base_dir);
         }
     }
 }
