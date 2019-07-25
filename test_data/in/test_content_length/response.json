@@ -1,6 +1,6 @@
 {
     "success": {},
     "failed": {
-        "https://picsum.photos/id/1002/4312/2868": "Could not download image: Response from url 'https://picsum.photos/id/1002/4312/2868' returned content_length 2327574 that exceeds max allowed 1000000"
+        "https://i1.wp.com/techbeasts.com/wp-content/uploads/2016/12/maxresdefault.jpg": "Could not download image: Response from url 'https://i1.wp.com/techbeasts.com/wp-content/uploads/2016/12/maxresdefault.jpg' returned content_length 402295 that exceeds max allowed 1000"
     }
 }

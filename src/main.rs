@@ -74,12 +74,14 @@ mod tests {
 
     #[test]
     fn test_content_length() {
+        let mut config = create_config();
+        config.max_content_length = Some(1000);
         call_thumbnail_handler(
             get_from_file("test_data/in/test_content_length/request.json"),
             Ok(get_from_file(
                 "test_data/in/test_content_length/response.json",
             )),
-            None,
+            Some(config),
         );
     }
 
