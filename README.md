@@ -9,20 +9,20 @@ Service accepts URLs of images, creates thumbnails and returns thumbnail image U
 To build docker image and run use:
 
 ```sh
-docker-compose up
+$ docker-compose up
 ```
 
 By default ```./thumbnails``` directory is mounted to container. 
 To mount other directory, set ```HOST_VOLUME_PATH``` env variable:
 
 ```sh
-HOST_VOLUME_PATH=/path/to/directory docker-compose up
+$ HOST_VOLUME_PATH=/path/to/directory docker-compose up
 ```
 
 By default binds port 8080 on host machine. To use other port on host use env ```HOST_PORT``` :
 
 ```sh
-HOST_PORT=8081 docker-compose up
+$ HOST_PORT=8081 docker-compose up
 ```
 
 Also available env variables:
@@ -53,8 +53,8 @@ Example response:
 ```json
 {
     "success": {        
-        "https://picsum.photos/id/2/500/500": "http://localhost:8080/thumbnail/500x500/0b90bf6685cca9a67380fa11a1ba143c.jpg",
-        "https://picsum.photos/id/1/500/500": "http://localhost:8080/thumbnail/500x500/3e01488f21a3acf704b02f57bc415c4f.jpg"        
+        "https://picsum.photos/id/2/500/500": "http://localhost:8080/thumbnail/100x100/0b90bf6685cca9a67380fa11a1ba143c.jpg",
+        "https://picsum.photos/id/1/500/500": "http://localhost:8080/thumbnail/100x100/3e01488f21a3acf704b02f57bc415c4f.jpg"        
     },
     "failed": {}
 }
