@@ -1,9 +1,5 @@
 # Thumbnail creator
 
-<a href="https://chillercicd.tk/viewType.html?buildTypeId=ThumbnailCreator_Build&guest=1">
-    <img src="https://chillercicd.tk/app/rest/builds/buildType:(id:ThumbnailCreator_Build)/statusIcon.svg" />
-</a>
-
 Service accepts URLs of images, creates thumbnails and returns thumbnail image URLs.
 
 To build docker image and run use:
